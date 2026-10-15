@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import apiClient from "./api/client";
@@ -10,12 +11,40 @@ const pages = [
 ];
 
 function Dashboard() {
-  const [health, setHealth] = useState("Checking API connection...");
+  const [health, setHealth] = useState({
+    state: "checking",
+    message: "Checking API connection...",
+  });
 
   useEffect(() => {
-    apiClient.get("/health")
-      .then(({ data }) => setHealth(`API is ${data.status ?? "healthy"}`))
-      .catch(() => setHealth("API is unavailable. Start the backend and try again."));
+    let active = true;
+
+    apiClient
+      .get("/health")
+      .then(({ data }) => {
+        if (!active) return;
+
+        if (data?.status === "ok") {
+          setHealth({ state: "online", message: "API is online" });
+        } else {
+          setHealth({
+            state: "offline",
+            message: "API returned an unexpected health status.",
+          });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setHealth({
+            state: "offline",
+            message: "API is unavailable. Start the backend and try again.",
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -23,19 +52,28 @@ function Dashboard() {
       <header className="page-heading">
         <p className="eyebrow">OVERVIEW</p>
         <h1>Welcome to ClientFlow</h1>
-        <p className="muted">Manage your freelance work, projects, and invoices in one place.</p>
+        <p className="muted">
+          Manage your freelance work, projects, and invoices in one place.
+        </p>
       </header>
+
       <section className="dashboard-grid">
         <article className="panel">
           <p className="eyebrow">YOUR WORKSPACE</p>
           <h2>Everything, in one place.</h2>
-          <p className="muted">Explore clients, projects, and invoices from your workspace.</p>
+          <p className="muted">
+            Explore clients, projects, and invoices from your workspace.
+          </p>
         </article>
+
         <article className="panel">
           <p className="eyebrow">SYSTEM STATUS</p>
           <h2>Backend connection</h2>
-          <p>{health}</p>
-          <code>GET /health</code>
+          <p className="health-status" role="status" aria-live="polite">
+            <span className={`status-dot ${health.state}`} aria-hidden="true" />
+            {health.message}
+          </p>
+          <code className="endpoint-label">GET /health</code>
         </article>
       </section>
     </>
@@ -48,7 +86,9 @@ function Placeholder({ title }) {
       <h1>{title}</h1>
       <section className="panel">
         <h2>Coming soon</h2>
-        <p className="muted">{title} functionality will be added in a future update.</p>
+        <p className="muted">
+          {title} functionality will be added in a future update.
+        </p>
       </section>
     </>
   );
@@ -58,7 +98,9 @@ function Login() {
   return (
     <section className="panel">
       <h1>Welcome back</h1>
-      <p className="muted">Login is a placeholder. Authentication is not enabled.</p>
+      <p className="muted">
+        Login is a placeholder. Authentication is not enabled.
+      </p>
       <NavLink to="/">Back to dashboard</NavLink>
     </section>
   );
@@ -77,26 +119,36 @@ export default function App() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <NavLink to="/" className="brand"><strong>ClientFlow</strong></NavLink>
+        <NavLink to="/" className="brand">
+          <strong>ClientFlow</strong>
+        </NavLink>
+
         <p className="nav-caption">WORKSPACE</p>
+
         <nav className="main-navigation" aria-label="Main navigation">
-          {pages.map(page => (
+          {pages.map((page) => (
             <NavLink
               key={page.to}
               to={page.to}
               end={page.end}
-              className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+              className={({ isActive }) =>
+                `nav-link${isActive ? " active" : ""}`
+              }
             >
               {page.label}
             </NavLink>
           ))}
         </nav>
+
         <div className="sidebar-bottom">
           <NavLink to="/login">Login ↗</NavLink>
         </div>
       </aside>
+
       <main className="main-content">
+        {/* TODO: Replace hardcoded workspace text with dynamic workspace data. */}
         <header className="topbar">ClientFlow / Workspace</header>
+
         <div className="content-container">
           <Routes>
             <Route path="/" element={<Dashboard />} />
