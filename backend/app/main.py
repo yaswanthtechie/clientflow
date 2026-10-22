@@ -1,10 +1,14 @@
-﻿from fastapi import Depends, FastAPI, HTTPException
+﻿import logging
+
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="ClientFlow API", version="0.1.0")
 
@@ -28,6 +32,7 @@ def readiness_check(db: Session = Depends(get_db)) -> dict[str, str]:
         db.execute(text("SELECT 1"))
         return {"status": "ready"}
     except Exception:
+        logger.exception("Database readiness check failed")
         raise HTTPException(
             status_code=503,
             detail="Database unavailable",
