@@ -1,4 +1,4 @@
-# ClientFlow
+﻿# ClientFlow
 
 ClientFlow is a full-stack freelancer project and invoice management application. The application helps a freelancer manage clients, projects, tasks, billable time, invoices, and dashboard reporting.
 
@@ -29,3 +29,35 @@ ClientFlow is a full-stack freelancer project and invoice management application
 - Open a pull request for every issue.
 - Keep `main` runnable and do not merge without passing checks.
 - Friday is review day: demo completed work, explain decisions, and review tests and documentation.
+
+## Database migrations
+
+The backend uses SQLAlchemy and Alembic to manage database schema migrations.
+
+1. Configure `DATABASE_URL` in `backend/.env` using the `postgresql+psycopg://` format. Never commit `.env` or expose database credentials.
+
+2. Open a terminal in `backend` and apply pending migrations:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m alembic upgrade head
+   ```
+
+3. Check the current migration revision:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m alembic current
+   ```
+
+4. Create a migration after changing SQLAlchemy models:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m alembic revision -m "message"
+   ```
+
+   Review the generated migration before applying it with `alembic upgrade head`.
+
+### Database readiness
+
+- `GET /health` checks whether the API is running.
+- `GET /health/ready` checks database connectivity using `SELECT 1`.
+- Readiness returns HTTP `200` with `{"status":"ready"}` when the database is available, or HTTP `503` when it is unavailable.
