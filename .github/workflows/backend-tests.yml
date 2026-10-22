@@ -1,4 +1,4 @@
-name: Backend tests
+﻿name: Backend tests
 
 on:
   pull_request:
@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: sqlite:///./test.db
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
