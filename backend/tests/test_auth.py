@@ -120,3 +120,57 @@ def test_register_rejects_long_email(client):
     )
 
     assert response.status_code == 422
+
+
+def test_login_returns_access_token_for_valid_credentials(client):
+    client.post(
+        "/auth/register",
+        json={"email": "login.user@example.com", "password": "password123"},
+    )
+
+    response = client.post(
+        "/auth/login",
+        json={"email": "login.user@example.com", "password": "password123"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["token_type"] == "bearer"
+    assert isinstance(body["access_token"], str) and body["access_token"]
+
+
+def test_login_rejects_wrong_password(client):
+    client.post(
+        "/auth/register",
+        json={"email": "wrongpass.user@example.com", "password": "password123"},
+    )
+
+    response = client.post(
+        "/auth/login",
+        json={"email": "wrongpass.user@example.com", "password": "incorrect123"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_login_rejects_unknown_email(client):
+    response = client.post(
+        "/auth/login",
+        json={"email": "no.such.user@example.com", "password": "password123"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_login_is_case_insensitive_on_email(client):
+    client.post(
+        "/auth/register",
+        json={"email": "CaseLogin@Example.com", "password": "password123"},
+    )
+
+    response = client.post(
+        "/auth/login",
+        json={"email": "caselogin@example.com", "password": "password123"},
+    )
+
+    assert response.status_code == 200

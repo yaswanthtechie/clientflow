@@ -7,6 +7,9 @@ from app.config import settings
 
 password_hash = PasswordHash.recommended()
 
+# Run password verification even when the email does not exist.
+DUMMY_PASSWORD_HASH = password_hash.hash("dummy-password-for-timing-safety")
+
 
 def hash_password(password: str) -> str:
     return password_hash.hash(password)
