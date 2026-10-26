@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
+
+from app.security import get_current_user_id
 from app.routes.auth import router as auth_router
 
 logger = logging.getLogger(__name__)
@@ -40,3 +42,9 @@ def readiness_check(db: Session = Depends(get_db)) -> dict[str, str]:
             status_code=503,
             detail="Database unavailable",
         ) from None
+
+@app.get("/auth/me", tags=["authentication"])
+def get_current_user(
+    user_id: int = Depends(get_current_user_id),
+) -> dict[str, int]:
+    return {"user_id": user_id}
