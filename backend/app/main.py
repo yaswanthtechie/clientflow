@@ -9,6 +9,8 @@ from app.config import settings
 from app.database import get_db
 from app.routes.auth import router as auth_router
 from app.routes.clients import router as clients_router
+from app.routes.projects import router as projects_router
+from app.routes.projects import router as projects_router
 from app.security import get_current_user_id
 
 logger = logging.getLogger(__name__)
@@ -17,6 +19,8 @@ app = FastAPI(title="ClientFlow API", version="0.1.0")
 
 app.include_router(auth_router)
 app.include_router(clients_router)
+app.include_router(projects_router)
+app.include_router(projects_router)
 
 app.add_middleware(
     CORSMiddleware,
