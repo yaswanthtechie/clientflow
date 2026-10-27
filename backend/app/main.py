@@ -1,4 +1,3 @@
-from app.routes.projects import router as projects_router
 import logging
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -10,6 +9,7 @@ from app.config import settings
 from app.database import get_db
 from app.routes.auth import router as auth_router
 from app.routes.clients import router as clients_router
+from app.routes.projects import router as projects_router
 from app.security import get_current_user_id
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ app.add_middleware(
 
 @app.get("/health", tags=["system"])
 def health_check() -> dict[str, str]:
-         return {"status": "ok", "service": "clientflow-api"}
+    return {"status": "ok", "service": "clientflow-api"}
 
 
 @app.get("/health/ready", tags=["system"])
