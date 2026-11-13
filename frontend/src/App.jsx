@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+
+import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import apiClient from "./api/client";
 
@@ -23,11 +24,14 @@ function Dashboard() {
       .then(({ data }) => {
         if (!active) return;
 
-        setHealth(
-          data?.status === "ok"
-            ? { state: "online", message: "API is online" }
-            : { state: "offline", message: "Unexpected health status." }
-        );
+        if (data?.status === "ok") {
+          setHealth({ state: "online", message: "API is online" });
+        } else {
+          setHealth({
+            state: "offline",
+            message: "API returned an unexpected health status.",
+          });
+        }
       })
       .catch(() => {
         if (active) {
@@ -197,7 +201,7 @@ function Login() {
 function NotFound() {
   return (
     <section className="panel">
-      <h1>404 - Page not found</h1>
+      <h1>404 — Page not found</h1>
       <NavLink to="/">Return to dashboard</NavLink>
     </section>
   );
@@ -229,11 +233,12 @@ export default function App() {
         </nav>
 
         <div className="sidebar-bottom">
-          <NavLink to="/login">Login</NavLink>
+          <NavLink to="/login">Login ↗</NavLink>
         </div>
       </aside>
 
       <main className="main-content">
+        {/* TODO: Replace hardcoded workspace text with dynamic workspace data. */}
         <header className="topbar">ClientFlow / Workspace</header>
 
         <div className="content-container">
