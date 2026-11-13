@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import apiClient from "./api/client";
 
 const pages = [
@@ -95,13 +95,105 @@ function Placeholder({ title }) {
 }
 
 function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setError("");
+
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await apiClient.post("/auth/login", {
+        email: cleanEmail,
+        password,
+      });
+
+      const accessToken = response.data?.access_token;
+
+      if (!accessToken) {
+        throw new Error("The server did not return an access token.");
+      }
+
+      localStorage.setItem("access_token", accessToken);
+      navigate("/", { replace: true });
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError("Invalid email or password. Please try again.");
+      } else if (err.response?.status === 422) {
+        setError("Please enter a valid email and password.");
+      } else if (err.response) {
+        setError("Login failed. Please try again later.");
+      } else {
+        setError("Unable to connect to the server. Check the backend.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <section className="panel">
-      <h1>Welcome back</h1>
-      <p className="muted">
-        Login is a placeholder. Authentication is not enabled.
-      </p>
-      <NavLink to="/">Back to dashboard</NavLink>
+    <section className="login-panel">
+      <div className="login-heading">
+        <p className="eyebrow">CLIENTFLOW ACCOUNT</p>
+        <h1>Welcome back</h1>
+        <p className="muted">Sign in to access your workspace.</p>
+      </div>
+
+      <form className="login-form" onSubmit={handleSubmit}>
+        <label className="form-field">
+          Email address
+          <input
+            className="login-input"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            maxLength={255}
+            required
+          />
+        </label>
+
+        <label className="form-field">
+          Password
+          <input
+            className="login-input"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            maxLength={128}
+            required
+          />
+        </label>
+
+        {error && (
+          <p className="login-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <button
+          className="login-button"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
     </section>
   );
 }
