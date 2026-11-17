@@ -263,7 +263,7 @@ export default function App() {
         <header className="topbar">ClientFlow / Workspace</header>
 
         <div className="content-container">
-                    <Routes>
+          <Routes>
             <Route element={<GuestRoute />}>
               <Route path="/login" element={<Login />} />
             </Route>
