@@ -24,20 +24,32 @@ class TimeEntry(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+
     task_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("tasks.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
+
+    invoice_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("invoices.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+
     worked_on: Mapped[date] = mapped_column(Date, nullable=False)
+
     billed: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
         default=False,
         server_default="false",
     )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
