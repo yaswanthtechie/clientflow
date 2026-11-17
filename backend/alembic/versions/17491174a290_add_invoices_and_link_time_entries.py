@@ -1,4 +1,4 @@
-﻿"""add invoices and link time entries
+"""add invoices and link time entries
 
 Revision ID: 17491174a290
 Revises: acf1748a331b

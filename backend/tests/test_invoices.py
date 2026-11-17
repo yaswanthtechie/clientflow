@@ -1,4 +1,4 @@
-﻿from conftest import TestingSessionLocal
+from conftest import TestingSessionLocal
 from app.models.time_entry import TimeEntry
 
 from tests.test_tasks import (
@@ -297,3 +297,116 @@ def test_invalid_invoice_status_is_rejected(client):
         json={"status": "cancelled"},
     )
     assert response.status_code == 422
+
+def test_invoice_total_rounds_to_nearest_cent(client):
+    headers = register_and_login(client, "invoice-rounding@example.com")
+    client_id, task_id = create_invoice_context(client, headers)
+
+    entry = create_time_entry(client, headers, task_id, 50)
+    assert entry.status_code == 201, entry.text
+
+    response = client.post(
+        "/invoices",
+        headers=headers,
+        json={
+            "client_id": client_id,
+            "time_entry_ids": [entry.json()["id"]],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["total_cents"] == 4167
+
+
+def test_cannot_invoice_time_entry_from_another_client(client):
+    headers = register_and_login(client, "invoice-other-client@example.com")
+    client_id, _ = create_invoice_context(client, headers)
+
+    other_client_id = create_client(client, headers, "Second Client")
+    other_project_id = create_project(
+        client, headers, other_client_id, "Second Project"
+    )
+    other_task = create_task(client, headers, other_project_id, "Other task")
+    assert other_task.status_code == 201, other_task.text
+
+    entry = create_time_entry(client, headers, other_task.json()["id"])
+    assert entry.status_code == 201, entry.text
+
+    response = client.post(
+        "/invoices",
+        headers=headers,
+        json={
+            "client_id": client_id,
+            "time_entry_ids": [entry.json()["id"]],
+        },
+    )
+    assert response.status_code == 404
+
+
+def test_cannot_update_status_of_another_users_invoice(client):
+    owner = register_and_login(client, "invoice-status-owner@example.com")
+    visitor = register_and_login(client, "invoice-status-visitor@example.com")
+
+    client_id, task_id = create_invoice_context(client, owner)
+    entry = create_time_entry(client, owner, task_id)
+    assert entry.status_code == 201, entry.text
+
+    created = client.post(
+        "/invoices",
+        headers=owner,
+        json={
+            "client_id": client_id,
+            "time_entry_ids": [entry.json()["id"]],
+        },
+    )
+    assert created.status_code == 201, created.text
+    invoice_id = created.json()["id"]
+
+    response = client.patch(
+        f"/invoices/{invoice_id}/status",
+        headers=visitor,
+        json={"status": "paid"},
+    )
+    assert response.status_code == 404
+
+    still_draft = client.get(f"/invoices/{invoice_id}", headers=owner)
+    assert still_draft.json()["status"] == "draft"
+
+
+def test_paid_invoice_cannot_be_deleted(client):
+    headers = register_and_login(client, "invoice-paid-delete@example.com")
+    client_id, task_id = create_invoice_context(client, headers)
+
+    entry = create_time_entry(client, headers, task_id)
+    assert entry.status_code == 201, entry.text
+
+    created = client.post(
+        "/invoices",
+        headers=headers,
+        json={
+            "client_id": client_id,
+            "time_entry_ids": [entry.json()["id"]],
+        },
+    )
+    assert created.status_code == 201, created.text
+    invoice_id = created.json()["id"]
+
+    updated = client.patch(
+        f"/invoices/{invoice_id}/status",
+        headers=headers,
+        json={"status": "paid"},
+    )
+    assert updated.status_code == 200, updated.text
+
+    deleted = client.delete(
+        f"/invoices/{invoice_id}",
+        headers=headers,
+    )
+    assert deleted.status_code == 409
+
+    retrieved = client.get(
+        f"/invoices/{invoice_id}",
+        headers=headers,
+    )
+    assert retrieved.status_code == 200
+    assert retrieved.json()["status"] == "paid"

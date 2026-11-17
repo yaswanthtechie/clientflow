@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -174,6 +174,12 @@ def delete_invoice(
     db: Session = Depends(get_db),
 ) -> Response:
     invoice = get_owned_invoice(invoice_id, user_id, db)
+
+    if invoice.status == "paid":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Paid invoices cannot be deleted",
+        )
 
     entries = db.query(TimeEntry).filter(
         TimeEntry.invoice_id == invoice.id
