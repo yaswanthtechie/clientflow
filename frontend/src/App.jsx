@@ -1,7 +1,9 @@
 
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import { NavLink, Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import apiClient from "./api/client";
+import ProtectedRoute from "./components/ProtectedRoute";
+import GuestRoute from "./components/GuestRoute";
 
 const pages = [
   { to: "/", label: "Dashboard", end: true },
@@ -96,6 +98,7 @@ function Placeholder({ title }) {
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -127,7 +130,11 @@ function Login() {
       }
 
       localStorage.setItem("access_token", accessToken);
-      navigate("/", { replace: true });
+      const from = location.state?.from;
+      const destination = from
+        ? `${from.pathname}${from.search || ""}${from.hash || ""}`
+        : "/";
+      navigate(destination, { replace: true });
     } catch (err) {
       if (err.response?.status === 401) {
         setError("Invalid email or password. Please try again.");
@@ -208,6 +215,14 @@ function NotFound() {
 }
 
 export default function App() {
+  const navigate = useNavigate();
+  const isAuthenticated = Boolean(localStorage.getItem("access_token"));
+
+  function handleLogout() {
+    localStorage.removeItem("access_token");
+    navigate("/login", { replace: true });
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -233,7 +248,13 @@ export default function App() {
         </nav>
 
         <div className="sidebar-bottom">
-          <NavLink to="/login">Login ↗</NavLink>
+          {isAuthenticated ? (
+            <button className="logout-button" type="button" onClick={handleLogout}>
+              Logout
+            </button>
+          ) : (
+            <NavLink to="/login">Login</NavLink>
+          )}
         </div>
       </aside>
 
@@ -243,12 +264,17 @@ export default function App() {
 
         <div className="content-container">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/clients" element={<Placeholder title="Clients" />} />
-            <Route path="/projects" element={<Placeholder title="Projects" />} />
-            <Route path="/invoices" element={<Placeholder title="Invoices" />} />
-            <Route path="*" element={<NotFound />} />
+            <Route element={<GuestRoute />}>
+              <Route path="/login" element={<Login />} />
+            </Route>
+
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/clients" element={<Placeholder title="Clients" />} />
+              <Route path="/projects" element={<Placeholder title="Projects" />} />
+              <Route path="/invoices" element={<Placeholder title="Invoices" />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Routes>
         </div>
       </main>

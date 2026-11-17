@@ -331,3 +331,20 @@ a {
     padding: 24px;
   }
 }
+
+.logout-button {
+  width: 100%;
+  padding: 12px 13px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #718091;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #3e5c7b;
+  background: #eaf0f6;
+}
