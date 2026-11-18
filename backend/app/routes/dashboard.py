@@ -1,4 +1,4 @@
-﻿from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
@@ -10,7 +10,7 @@ from app.models.invoice import Invoice
 from app.models.project import Project
 from app.models.task import Task
 from app.models.time_entry import TimeEntry
-from app.schemas.dashboard import DashboardResponse
+from app.schemas.dashboard import DashboardResponse, InvoiceTotals
 from app.security import get_current_user_id
 
 router = APIRouter(tags=["dashboard"])
@@ -47,6 +47,7 @@ def get_dashboard(
         or 0
     )
 
+    # Include all logged time; billed only indicates invoice linkage.
     total_minutes = (
         db.query(func.coalesce(func.sum(TimeEntry.minutes), 0))
         .join(Task, TimeEntry.task_id == Task.id)
@@ -80,12 +81,12 @@ def get_dashboard(
         .scalar()
     )
 
-    return {
-        "total_clients": int(total_clients),
-        "active_projects": int(active_projects),
-        "billable_hours_this_month": round(int(total_minutes) / 60, 2),
-        "invoice_totals": {
-            "unpaid_cents": int(unpaid_cents),
-            "paid_cents": int(paid_cents),
-        },
-    }
+    return DashboardResponse(
+        total_clients=int(total_clients),
+        active_projects=int(active_projects),
+        total_hours_logged_this_month=round(int(total_minutes) / 60, 2),
+        invoice_totals=InvoiceTotals(
+            unpaid_cents=int(unpaid_cents),
+            paid_cents=int(paid_cents),
+        ),
+    )

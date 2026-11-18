@@ -1,4 +1,4 @@
-﻿from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from tests.test_tasks import (
     create_client,
@@ -119,7 +119,7 @@ def test_dashboard_calculations_and_user_isolation(client):
 
     assert data["total_clients"] == 1
     assert data["active_projects"] == 1
-    assert data["billable_hours_this_month"] == 6.0
+    assert data["total_hours_logged_this_month"] == 6.0
     assert data["invoice_totals"]["unpaid_cents"] == 15000
     assert data["invoice_totals"]["paid_cents"] == 15000
 
@@ -136,6 +136,6 @@ def test_dashboard_for_new_user_returns_zeros(client):
     assert response.json() == {
         "total_clients": 0,
         "active_projects": 0,
-        "billable_hours_this_month": 0.0,
+        "total_hours_logged_this_month": 0.0,
         "invoice_totals": {"unpaid_cents": 0, "paid_cents": 0},
     }

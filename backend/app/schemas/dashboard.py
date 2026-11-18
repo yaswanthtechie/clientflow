@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 
 
 class InvoiceTotals(BaseModel):
@@ -9,5 +9,5 @@ class InvoiceTotals(BaseModel):
 class DashboardResponse(BaseModel):
     total_clients: int
     active_projects: int
-    billable_hours_this_month: float
+    total_hours_logged_this_month: float
     invoice_totals: InvoiceTotals
