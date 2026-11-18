@@ -348,3 +348,132 @@ a {
   color: #3e5c7b;
   background: #eaf0f6;
 }
+
+.clients-form-panel {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.client-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.client-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.client-form input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.client-form button {
+  align-self: end;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.client-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clients-list-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.clients-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.client-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+}
+
+.client-card-info {
+  min-width: 0;
+}
+
+.client-card-info h3 {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.client-rate {
+  margin-top: 12px;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.delete-button {
+  align-self: flex-start;
+  padding: 8px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  color: #dc2626;
+  background: #fff;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: #fef2f2;
+}
+
+.secondary-button {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: white;
+  cursor: pointer;
+}
+
+.empty-state {
+  padding: 36px 20px;
+  text-align: center;
+  color: #6b7280;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+}
+
+@media (max-width: 640px) {
+  .client-form {
+    grid-template-columns: 1fr;
+  }
+
+  .clients-list {
+    grid-template-columns: 1fr;
+  }
+
+  .client-card {
+    flex-direction: column;
+  }
+}
