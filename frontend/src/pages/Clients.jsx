@@ -5,6 +5,7 @@ export default function Clients() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -79,21 +80,21 @@ export default function Clients() {
 
   async function handleDelete(client) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${client.name}?`
+      `Deleting "${client.name}" will permanently delete all related projects, tasks, time entries, and invoices (including paid invoices). This cannot be undone. Continue?`
     );
 
     if (!confirmed) return;
 
-    setError("");
+    setDeleteError("");
 
     try {
       await apiClient.delete(`/clients/${client.id}`);
       await loadClients();
     } catch (err) {
       if (err.response?.status === 404) {
-        setError("Client was not found. Refresh the list.");
+        setDeleteError("Client was not found. Refresh the list.");
       } else {
-        setError("Unable to delete client. Please try again.");
+        setDeleteError("Unable to delete client. Please try again.");
       }
     }
   }
@@ -145,7 +146,7 @@ export default function Clients() {
           </label>
 
           <label className="form-field">
-            Hourly rate (?)
+            Hourly rate (INR)
             <input
               className="login-input"
               type="number"
@@ -182,6 +183,12 @@ export default function Clients() {
             {loading ? "Loading..." : "Refresh"}
           </button>
         </div>
+
+        {deleteError && (
+          <p className="login-error" role="alert">
+            {deleteError}
+          </p>
+        )}
 
         {loading && (
           <p className="muted" role="status">
