@@ -1,4 +1,4 @@
-﻿from datetime import date, timedelta
+﻿from datetime import date, datetime, timedelta, timezone
 
 from tests.test_tasks import (
     create_client,
@@ -15,7 +15,7 @@ def create_dashboard_invoice(client, headers, client_id, task_id, minutes, statu
         json={
             "task_id": task_id,
             "minutes": minutes,
-            "worked_on": date.today().isoformat(),
+            "worked_on": datetime.now(timezone.utc).date().isoformat(),
         },
     )
     assert entry.status_code == 201, entry.text
@@ -70,8 +70,7 @@ def test_dashboard_calculations_and_user_isolation(client):
     assert owner_task.status_code == 201, owner_task.text
     owner_task_id = owner_task.json()["id"]
 
-    # Current-month entries and invoices:
-    # draft = 5,000 cents; sent = 10,000 cents; paid = 15,000 cents.
+    # Current-month entries and invoices.
     create_dashboard_invoice(
         client, owner, owner_client_id, owner_task_id, 60, "draft"
     )
@@ -83,7 +82,8 @@ def test_dashboard_calculations_and_user_isolation(client):
     )
 
     # Previous-month time must not be included.
-    previous_month = date.today().replace(day=1) - timedelta(days=1)
+    today = datetime.now(timezone.utc).date()
+    previous_month = today.replace(day=1) - timedelta(days=1)
     previous_entry = client.post(
         "/time-entries",
         headers=owner,
@@ -125,3 +125,17 @@ def test_dashboard_calculations_and_user_isolation(client):
 
     assert isinstance(data["invoice_totals"]["unpaid_cents"], int)
     assert isinstance(data["invoice_totals"]["paid_cents"], int)
+
+
+def test_dashboard_for_new_user_returns_zeros(client):
+    headers = register_and_login(client, "dashboard-empty@example.com")
+
+    response = client.get("/dashboard", headers=headers)
+
+    assert response.status_code == 200, response.text
+    assert response.json() == {
+        "total_clients": 0,
+        "active_projects": 0,
+        "billable_hours_this_month": 0.0,
+        "invoice_totals": {"unpaid_cents": 0, "paid_cents": 0},
+    }

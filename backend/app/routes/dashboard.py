@@ -1,4 +1,4 @@
-﻿from datetime import date
+﻿from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
@@ -10,17 +10,18 @@ from app.models.invoice import Invoice
 from app.models.project import Project
 from app.models.task import Task
 from app.models.time_entry import TimeEntry
+from app.schemas.dashboard import DashboardResponse
 from app.security import get_current_user_id
 
 router = APIRouter(tags=["dashboard"])
 
 
-@router.get("/dashboard")
+@router.get("/dashboard", response_model=DashboardResponse)
 def get_dashboard(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
-) -> dict:
-    today = date.today()
+) -> DashboardResponse:
+    today = datetime.now(timezone.utc).date()
     month_start = today.replace(day=1)
 
     if today.month == 12:
