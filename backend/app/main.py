@@ -9,6 +9,7 @@ from app.config import settings
 from app.database import get_db
 from app.routes.auth import router as auth_router
 from app.routes.clients import router as clients_router
+from app.routes.dashboard import router as dashboard_router
 from app.routes.invoices import router as invoices_router
 from app.routes.projects import router as projects_router
 from app.routes.tasks import router as tasks_router
@@ -26,6 +27,7 @@ app.include_router(projects_router)
 app.include_router(tasks_router)
 app.include_router(time_entries_router)
 app.include_router(invoices_router)
+app.include_router(dashboard_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_origin],
