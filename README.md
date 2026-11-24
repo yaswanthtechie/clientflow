@@ -15,6 +15,11 @@ ClientFlow is a full-stack freelancer project and invoice management application
 2. Start the application with `docker compose up --build`.
 3. Open the frontend at `http://localhost:5173` and API documentation at `http://localhost:8000/docs`.
 
+## Currency
+
+ClientFlow uses Indian Rupees (INR) as its standard currency.
+Monetary amounts are stored as integer minor units to avoid floating-point precision issues. INR's minor unit is the paise (100 paise = 1 INR); API and code field names use `cents` for this value (for example, `hourly_rate_cents`), and that term should be used consistently in code.
+
 ## Project documentation
 
 - [Product requirements](docs/PRD.md)
