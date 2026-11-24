@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import apiClient from "../api/client";
 
+const MAX_INTEGER_CENTS = 2_147_483_647;
+const MAX_HOURLY_RATE_INR = MAX_INTEGER_CENTS / 100;
+
 export default function Clients() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [deleteError, setDeleteError] = useState("");
+  const [deletingClientId, setDeletingClientId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -13,8 +18,12 @@ export default function Clients() {
   const [email, setEmail] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
 
-  async function loadClients() {
-    setLoading(true);
+  async function loadClients(showInitialLoading = false) {
+    if (showInitialLoading) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
     setError("");
 
     try {
@@ -24,11 +33,12 @@ export default function Clients() {
       setError("Unable to load clients. Please try again.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
   useEffect(() => {
-    loadClients();
+    loadClients(true);
   }, []);
 
   async function handleSubmit(event) {
@@ -38,6 +48,7 @@ export default function Clients() {
     const cleanName = name.trim();
     const cleanEmail = email.trim();
     const rate = Number(hourlyRate);
+    const rateCents = Math.round(rate * 100);
 
     if (!cleanName) {
       setFormError("Client name is required.");
@@ -49,8 +60,10 @@ export default function Clients() {
       return;
     }
 
-    if (rate > 100000000) {
-      setFormError("Hourly rate is too large.");
+    if (!Number.isSafeInteger(rateCents) || rateCents > MAX_INTEGER_CENTS) {
+      setFormError(
+        `Hourly rate must not exceed ₹${MAX_HOURLY_RATE_INR.toLocaleString("en-IN")}.`
+      );
       return;
     }
 
@@ -60,7 +73,7 @@ export default function Clients() {
       await apiClient.post("/clients", {
         name: cleanName,
         email: cleanEmail || null,
-        hourly_rate_cents: Math.round(rate * 100),
+        hourly_rate_cents: rateCents,
       });
 
       setName("");
@@ -79,6 +92,8 @@ export default function Clients() {
   }
 
   async function handleDelete(client) {
+    if (deletingClientId === client.id) return;
+
     const confirmed = window.confirm(
       `Deleting "${client.name}" will permanently delete all related projects, tasks, time entries, and invoices (including paid invoices). This cannot be undone. Continue?`
     );
@@ -86,16 +101,26 @@ export default function Clients() {
     if (!confirmed) return;
 
     setDeleteError("");
+    setDeletingClientId(client.id);
 
     try {
       await apiClient.delete(`/clients/${client.id}`);
+      setClients((currentClients) =>
+        currentClients.filter((currentClient) => currentClient.id !== client.id)
+      );
       await loadClients();
     } catch (err) {
       if (err.response?.status === 404) {
-        setDeleteError("Client was not found. Refresh the list.");
+        setClients((currentClients) =>
+          currentClients.filter((currentClient) => currentClient.id !== client.id)
+        );
+        setDeleteError("This client was already deleted. The list has been refreshed.");
+        await loadClients();
       } else {
         setDeleteError("Unable to delete client. Please try again.");
       }
+    } finally {
+      setDeletingClientId(null);
     }
   }
 
@@ -151,6 +176,7 @@ export default function Clients() {
               className="login-input"
               type="number"
               min="0"
+              max={MAX_HOURLY_RATE_INR}
               step="0.01"
               value={hourlyRate}
               onChange={(event) => setHourlyRate(event.target.value)}
@@ -177,10 +203,10 @@ export default function Clients() {
           <button
             className="secondary-button"
             type="button"
-            onClick={loadClients}
-            disabled={loading}
+            onClick={() => loadClients()}
+            disabled={loading || refreshing}
           >
-            {loading ? "Loading..." : "Refresh"}
+            {refreshing ? "Refreshing..." : "Refresh"}
           </button>
         </div>
 
@@ -199,13 +225,18 @@ export default function Clients() {
         {!loading && error && (
           <div className="panel">
             <p className="login-error" role="alert">{error}</p>
-            <button className="secondary-button" onClick={loadClients}>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => loadClients()}
+              disabled={refreshing}
+            >
               Try again
             </button>
           </div>
         )}
 
-        {!loading && !error && clients.length === 0 && (
+        {!loading && clients.length === 0 && !error && (
           <section className="panel empty-state">
             <h3>No clients yet</h3>
             <p className="muted">
@@ -214,30 +245,34 @@ export default function Clients() {
           </section>
         )}
 
-        {!loading && !error && clients.length > 0 && (
-          <div className="clients-list">
-            {clients.map((client) => (
-              <article className="panel client-card" key={client.id}>
-                <div className="client-card-info">
-                  <h3>{client.name}</h3>
-                  <p className="muted">
-                    {client.email || "No email provided"}
-                  </p>
-                  <p className="client-rate">
-                    {formatCurrency(client.hourly_rate_cents)} / hour
-                  </p>
-                </div>
+        {!loading && clients.length > 0 && (
+          <>
+            {error && <p className="login-error" role="alert">{error}</p>}
+            <div className="clients-list">
+              {clients.map((client) => (
+                <article className="panel client-card" key={client.id}>
+                  <div className="client-card-info">
+                    <h3>{client.name}</h3>
+                    <p className="muted">
+                      {client.email || "No email provided"}
+                    </p>
+                    <p className="client-rate">
+                      {formatCurrency(client.hourly_rate_cents)} / hour
+                    </p>
+                  </div>
 
-                <button
-                  className="delete-button"
-                  type="button"
-                  onClick={() => handleDelete(client)}
-                >
-                  Delete
-                </button>
-              </article>
-            ))}
-          </div>
+                  <button
+                    className="delete-button"
+                    type="button"
+                    onClick={() => handleDelete(client)}
+                    disabled={deletingClientId === client.id}
+                  >
+                    {deletingClientId === client.id ? "Deleting..." : "Delete"}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </>
         )}
       </section>
     </>

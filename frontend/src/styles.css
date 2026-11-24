@@ -350,10 +350,6 @@ a {
 }
 
 .clients-form-panel {
-  background: var(--card-bg, #ffffff);
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 12px;
-  padding: 24px;
   margin-bottom: 28px;
 }
 
@@ -371,29 +367,8 @@ a {
   font-weight: 500;
 }
 
-.client-form input {
-  width: 100%;
-  padding: 11px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font: inherit;
-  box-sizing: border-box;
-}
-
 .client-form button {
   align-self: end;
-  padding: 11px 18px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.client-form button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .clients-list-heading {
@@ -446,6 +421,11 @@ a {
 
 .delete-button:hover {
   background: #fef2f2;
+}
+
+.delete-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .secondary-button {
