@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import apiClient from "../api/client";
+import { formatCurrency } from "../utils/currency";
 
 const MAX_INTEGER_CENTS = 2_147_483_647;
 const MAX_HOURLY_RATE_INR = MAX_INTEGER_CENTS / 100;
@@ -124,13 +125,6 @@ export default function Clients() {
     }
   }
 
-  function formatCurrency(cents) {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 2,
-    }).format(cents / 100);
-  }
 
   return (
     <>
@@ -278,3 +272,5 @@ export default function Clients() {
     </>
   );
 }
+
+
