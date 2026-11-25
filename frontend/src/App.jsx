@@ -1,4 +1,3 @@
-﻿
 import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import apiClient from "./api/client";
@@ -210,7 +209,7 @@ function Login() {
 function NotFound() {
   return (
     <section className="panel">
-      <h1>404 â€” Page not found</h1>
+      <h1>404 - Page not found</h1>
       <NavLink to="/">Return to dashboard</NavLink>
     </section>
   );
@@ -283,5 +282,3 @@ export default function App() {
     </div>
   );
 }
-
-

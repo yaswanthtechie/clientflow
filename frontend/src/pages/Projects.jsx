@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import apiClient from "../api/client";
 
 export default function Projects() {
@@ -34,10 +35,15 @@ export default function Projects() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+
     if (!selectedClient) {
       setProjects([]);
       setProjectsError("");
-      return;
+      setProjectsLoading(false);
+      return () => {
+        active = false;
+      };
     }
 
     async function fetchProjects() {
@@ -48,14 +54,26 @@ export default function Projects() {
         const response = await apiClient.get("/projects", {
           params: { client_id: selectedClient },
         });
-        setProjects(response.data);
+
+        if (active) {
+          setProjects(response.data);
+        }
       } catch (err) {
-        setProjectsError("Unable to load projects. Please try again.");
+        if (active) {
+          setProjectsError("Unable to load projects. Please try again.");
+        }
       } finally {
-        setProjectsLoading(false);
+        if (active) {
+          setProjectsLoading(false);
+        }
       }
     }
+
     fetchProjects();
+
+    return () => {
+      active = false;
+    };
   }, [selectedClient]);
 
   async function handleCreateProject(event) {
@@ -133,7 +151,7 @@ export default function Projects() {
 
   async function handleDeleteProject(project) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${project.name}"? This will also permanently delete all tasks and time entries associated with this project. This action cannot be undone.`
+      `Are you sure you want to delete "${project.name}"? This will permanently delete the project, all its tasks, and all associated time entries, including time entries already included in invoices. Existing invoice records and their totals will remain, but the deleted time-entry details will no longer be available. This action cannot be undone.`
     );
 
     if (!confirmed) {
@@ -170,7 +188,7 @@ export default function Projects() {
         {loading && <p className="muted">Loading clients...</p>}
         {error && <p className="login-error" role="alert">{error}</p>}
         {!loading && !error && clients.length === 0 && (
-          <p className="muted">No clients found. Please <a href="/clients">create a client first</a>.</p>
+          <p className="muted">No clients found. Please <Link to="/clients">create a client first</Link>.</p>
         )}
         {!loading && clients.length > 0 && (
           <div className="form-field">
@@ -269,7 +287,7 @@ export default function Projects() {
                               : "Reactivate Project"}
                         </button>
                         <button
-                          className="login-button"
+                          className="delete-button"
                           type="button"
                           style={{ maxWidth: "180px" }}
                           disabled={busy}
@@ -291,6 +309,3 @@ export default function Projects() {
     </>
   );
 }
-
-
-
