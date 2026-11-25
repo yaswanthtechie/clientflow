@@ -209,7 +209,7 @@ function Login() {
 function NotFound() {
   return (
     <section className="panel">
-      <h1>404 - Page not found</h1>
+      <h1>404 — Page not found</h1>
       <NavLink to="/">Return to dashboard</NavLink>
     </section>
   );
