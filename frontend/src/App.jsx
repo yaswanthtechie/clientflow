@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import apiClient from "./api/client";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
 import Clients from "./pages/Clients";
+import Projects from "./pages/Projects";
 
 const pages = [
   { to: "/", label: "Dashboard", end: true },
@@ -272,7 +272,7 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/clients" element={<Clients />} />
-              <Route path="/projects" element={<Placeholder title="Projects" />} />
+              <Route path="/projects" element={<Projects />} />
               <Route path="/invoices" element={<Placeholder title="Invoices" />} />
               <Route path="*" element={<NotFound />} />
             </Route>
