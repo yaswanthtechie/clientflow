@@ -5,11 +5,13 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
 import Clients from "./pages/Clients";
 import Projects from "./pages/Projects";
+import Tasks from "./pages/Tasks";
 
 const pages = [
   { to: "/", label: "Dashboard", end: true },
   { to: "/clients", label: "Clients" },
   { to: "/projects", label: "Projects" },
+  { to: "/tasks", label: "Tasks" },
   { to: "/invoices", label: "Invoices" },
 ];
 
@@ -209,7 +211,7 @@ function Login() {
 function NotFound() {
   return (
     <section className="panel">
-      <h1>404 — Page not found</h1>
+      <h1>404 â€” Page not found</h1>
       <NavLink to="/">Return to dashboard</NavLink>
     </section>
   );
@@ -273,6 +275,7 @@ export default function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/projects" element={<Projects />} />
+              <Route path="/tasks" element={<Tasks />} />
               <Route path="/invoices" element={<Placeholder title="Invoices" />} />
               <Route path="*" element={<NotFound />} />
             </Route>
